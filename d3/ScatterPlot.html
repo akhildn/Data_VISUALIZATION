@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <style>
+        .axis path {
+            fill: none;
+            stroke: #777;
+            shape-rendering: crispEdges;
+        }
+        .axis text {
+           
+            font-size: 13px;
+        }
+        .legend {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        body {
+          font: 10px sans-serif;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div>
+
+        <div>
+
+            <svg id="visualisation" width="1500" height="2000"></svg>
+            <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+            <script>
+                function GenerateChart() {
+
+                   d3.csv("data/visualize.csv", function(data) {
+                         //intialized the graph
+                        var graph = d3.select("#visualisation"),
+                            WIDTH = 1000,
+                            HEIGHT = 500,
+                            MARGINS = {
+                                top: 20,
+                                right: 20,
+                                bottom: 20,
+                                left: 50
+                            },
+                            xScale = d3.scale.ordinal().rangePoints([MARGINS.left, WIDTH - MARGINS.right]).domain(data.map(function(d) { return d.country; })),
+                            yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([0, 40]),
+                            xAxis = d3.svg.axis()
+                            .scale(xScale),
+                            yAxis = d3.svg.axis()
+                            .scale(yScale)
+                            .orient("left")
+                            ;
+                        
+                        function createAxis(graph, axisObj, axisName, translateLow, translateHigh) {
+                            graph.append("svg:g")
+                            .attr("class", axisName)
+                            .attr("transform", "translate("+translateLow+"," + translateHigh + ")")
+                            .call(axisObj);
+
+                        }
+                        
+                        createAxis(graph, xAxis, 'x axis', 0, (HEIGHT - MARGINS.bottom));
+                        createAxis(graph, yAxis, 'y axis', MARGINS.left, 0);
+                        
+                        var zAxis = d3.scale.category10();
+
+                        var deathTypes = d3.keys(data[0])
+                                              .filter(function(d) { return d !== "country"; })
+                                              .sort();
+
+                        var deathByType = deathTypes.map(function(deathType) {
+                                    return data.map(function(d) {                                    
+                                      return {x: "" + d.country, y: +d[deathType]};
+                                    });
+                                  });
+
+                        graph.selectAll(".series")
+                            .data(deathByType)
+                            .enter().append("g")
+                            .attr("class", "series")
+                              .style("fill", function(d, i) { return zAxis(i); })
+                            .selectAll(".point")
+                              .data(function(d) { return d; })
+                            .enter().append("circle")
+                              .attr("class", "point")
+                              .attr("r", 4.5)
+                              .attr("cx", function(d) { return xScale(d.x); })
+                              .attr("cy", function(d) { return yScale(d.y); });
+
+                        // adding legend
+                       
+                        var legend = graph.selectAll(".legend")
+                            .data(zAxis.domain())
+                            .enter().append("g")
+                            .attr("class", "legend")
+                            .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+                        legend.append("rect")
+                            .attr("x", 1200)                
+                            .attr("width", 18)
+                            .attr("height", 18)
+                            .style("fill", zAxis);
+
+                        legend.append("text")
+                            .attr("x", 1190)
+                            .attr("y", 8)
+                            .attr("class", "legend")
+                            .attr("dy", ".35em")
+                            .style("text-anchor", "end")                            
+                            .text(function(d) { return deathTypes[d];});
+
+                   });
+                   
+                }
+                GenerateChart();
+            </script>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

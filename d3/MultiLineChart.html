@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <style>
+        .axis path {
+            fill: none;
+            stroke: #777;
+            shape-rendering: crispEdges;
+        }
+        .axis text {
+           
+            font-size: 13px;
+        }
+        .legend {
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div>
+
+        <div>
+
+            <svg id="visualisation" width="1100" height="1000"></svg> 
+            <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+            <script>
+                function GenerateChart() {
+
+                	d3.csv("data/visualize.csv", function(data) {
+                    	//intialized the graph
+                        var graph = d3.select("#visualisation"),
+                            WIDTH = 1000,
+                            HEIGHT = 500,
+                            MARGINS = {
+                                top: 20,
+                                right: 20,
+                                bottom: 20,
+                                left: 50
+                            },
+                            xScale = d3.scale.ordinal().rangePoints([MARGINS.left, WIDTH - MARGINS.right]).domain(data.map(function(d) { return d.country; })),
+                            yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([0, 40]),
+                            xAxis = d3.svg.axis()
+                            .scale(xScale),
+                            yAxis = d3.svg.axis()
+                            .scale(yScale)
+                            .orient("left")
+                            ;
+
+                       
+
+                        function addLegend(graph, totalLines, currentIndex, textColor, text){
+
+                            lSpace = WIDTH/totalLines;
+
+                           graph.append("text")
+                                .attr("x", (lSpace / 2) + currentIndex * lSpace)
+                                .attr("y", 550)
+                                .style("fill", textColor)
+                                .attr("class", "legend")
+                                .text(text);
+
+                        }
+                        
+                        function createAxis(graph, axisObj, axisName, translateLow, translateHigh) {
+                            graph.append("svg:g")
+                            .attr("class", axisName)
+                            .attr("transform", "translate("+translateLow+"," + translateHigh + ")")
+                            .call(axisObj);
+
+                        }
+
+                        function drawLine(graph, data, interpolateType, xDataElemName, yDataElemName, strokeWidth, lineColor) {
+                            var lineObj = d3.svg.line()
+                                .x(function(data) {
+                                    return xScale(data[xDataElemName]);
+                                })
+                                .y(function(data) {
+                                    return yScale(data[yDataElemName]);
+                                })
+                                .interpolate(interpolateType);
+
+                            graph.append('svg:path')
+                                .attr('d', lineObj(data))
+                                .attr('stroke', lineColor)
+                                .attr('stroke-width', strokeWidth)
+                                .attr('fill', 'none');
+
+                        }
+
+                        createAxis(graph, xAxis, 'x axis', 0, (HEIGHT - MARGINS.bottom));
+                        createAxis(graph, yAxis, 'y axis', MARGINS.left, 0);
+
+
+                        drawLine(graph, data, 'basis','country', 'Drowing_Deaths', 2, 'red');
+                        drawLine(graph, data, 'linear','country', 'Poising_Deaths', 2, 'green');
+                        drawLine(graph, data, 'linear','country', 'Suicide_Deaths', 2, 'blue');
+                        drawLine(graph, data, 'linear','country', 'Murder_Deaths', 2, 'pink');
+                        drawLine(graph, data, 'linear','country', 'Fall_Deaths', 2, 'purple');
+                        drawLine(graph, data, 'linear','country', 'Fire_Deaths', 2, 'black');
+                        drawLine(graph, data, 'linear','country', 'Traffic_Deaths', 2, 'orange');
+                        drawLine(graph, data, 'linear','country', 'War_Deaths', 2, 'darkblue');
+
+                        var totalLines = 8
+                        addLegend(graph, totalLines, 0, 'red', 'Drowing_Deaths');
+                        addLegend(graph, totalLines, 1, 'green', 'Poising_Deaths');
+                        addLegend(graph, totalLines, 2, 'blue', 'Suicide_Deaths');
+                        addLegend(graph, totalLines, 3, 'pink', 'Murder_Deaths');
+                        addLegend(graph, totalLines, 4, 'purple', 'Fall_Deaths');
+                        addLegend(graph, totalLines, 5, 'black', 'Fire_Deaths');
+                        addLegend(graph, totalLines, 6, 'orange', 'Traffic_Deaths');
+                        addLegend(graph, totalLines, 7, 'darkblue', 'War_Deaths');
+                    
+
+
+                	});
+
+                }
+                GenerateChart();
+            </script>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

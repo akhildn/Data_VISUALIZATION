@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<style>
+
+		.pathFocus path {
+		  fill: none;
+		}
+
+		.axis path {
+			fill: none;
+			stroke: #777;
+			shape-rendering: crispEdges;
+		}
+		.axis text{
+			font-size: 13px;
+		}
+		.legend{
+			font-size: 14px;
+			font-weight: bold;
+		}
+
+	</style>
+</head>
+<body>
+<div>
+<div>
+<svg id="visualisation" width="1500" height="2000"></svg>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+function GenerateChart(){
+
+d3.csv("data/visualize.csv", function(data) {
+       //intialized the graph
+       var graph = d3.select("#visualisation"),
+           WIDTH = 1000,
+           HEIGHT = 500,
+           MARGINS = {
+               top: 20,
+               right: 20,
+               bottom: 20,
+               left: 50
+          },
+          x = d3.scale.ordinal().rangePoints([MARGINS.left, WIDTH - MARGINS.right]).domain(data.map(function(d) { return d.country; })),
+		  y = {},
+		  xAxis = d3.svg.axis()
+            .scale(x),
+          yAxis = d3.svg.axis()
+             .scale(y)
+             .orient("left");
+		  
+			
+  var color = d3.scale.category10();
+  // Extract the list of dimensions and create a scale for each.
+  x.domain(dimensions = d3.keys(data[0]).filter(function(d) {
+    return d != "country" && (y[d] = d3.scale.linear()
+        .domain(d3.extent(data, function(p) { return +p[d]; }))
+        .range([HEIGHT, 0]));
+  }));
+
+  var pathFocus = graph.append("g")
+      .attr("class", "pathFocus")
+    .selectAll("path")
+      .data(data)
+    .enter().append("path")
+      .attr("d", function(d){
+	  return d3.svg.line()(dimensions.map(function(p) { return [x(p), y[p](d[p])]; }));
+	  }).style("stroke", function(d, i) { return color(i); });
+	  
+  // Add a group element for each dimension.
+  var g = graph.selectAll(".dimension")
+      .data(dimensions)
+    .enter().append("g")
+      .attr("class", "dimension")
+      .attr("transform", function(d) { return "translate(" + x(d) + ")"; });
+
+  // Add an axis and title.
+  g.append("g")
+      .attr("class", "axis")
+      .each(function(d) { d3.select(this).call(d3.svg.axis().orient("left").scale(y[d])); })
+    .append("text")
+      .style("text-anchor", "middle")
+      .attr("y", -9)
+      .text(function(d) { return d; });
+	  
+	  
+   var deathTypes = d3.keys(data[0])
+      .filter(function(d) { return d !== "country"; })
+      .sort();
+	  
+  var deathByType = deathTypes.map(function(deathType) {
+       return data.map(function(d) {                                    
+       return {x: "" + d.country, y: +d[deathType]};
+	});
+  });
+
+  var legend = graph.selectAll(".legend")
+                            .data(color.domain())
+                            .enter().append("g")
+                            .attr("class", "legend")
+                            .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+                        legend.append("rect")
+                            .attr("x", 1200)                
+                            .attr("width", 18)
+                            .attr("height", 18)
+                            .style("fill", color);
+
+                        legend.append("text")
+                            .attr("x", 1190)
+                            .attr("y", 8)
+                            .attr("class", "legend")
+                            .attr("dy", ".35em")
+                            .style("text-anchor", "end")                            
+                            .text(function(d) { return deathTypes[d];});
+							
+                        
+});
+}
+GenerateChart();
+
+</script>
+</div>
+</div>
+
+</body>
+
+</html>
