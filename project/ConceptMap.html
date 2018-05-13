@@ -1,0 +1,426 @@
+<head>
+	<meta charset="utf-8">
+	<meta name="name" content="Concept Map" />
+	<meta name="description" content="An abstract mapping for parameters. Works best if first tag is 'unique' among the tracklist, and the second tag applies to multiple tracks"/>
+	<meta name="mintags" content="2" />
+	<meta name="maxtags" content="2" />
+	<title>Jam Cellar 2014-05-06</title>
+
+<style>
+
+svg {
+    size: 1700;
+    width: 1700;
+    height: 1700;
+    margin-left: 20;
+    margin: 150;
+    font: 12px sans-serif;
+}
+
+text {
+    pointer-events: none;
+}
+
+.inner_node rect {
+    pointer-events: all;
+}
+
+.inner_node rect.highlight {
+    stroke: #315B7E;
+    stroke-width: 2px;
+}
+
+.outer_node circle {
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+    pointer-events: all;
+}
+
+.outer_node circle.highlight
+{
+    stroke: #315B7E;
+    stroke-width: 2px;
+}
+
+.link {
+    fill: none;
+}
+
+</style>	
+</head>
+<body>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script>
+        
+        d3.csv("CompleteDataset.csv",function(dataCsv){
+            console.log(dataCsv);
+            var outer=d3.map();
+            var outer2=d3.map();
+            var inner=[];
+            var links=[];
+            var outerId=[0];
+            var outerId1=[0];
+
+            
+            if(dataCsv==null){
+                return;
+            }
+            var data;
+            var dataClub;
+            var count=0;
+            var k=0;
+            
+                while(count<40&&k<dataCsv.length){
+
+                   // console.log(dataCsv.length+" "+dataCsv[k]["Preferred Positions"]);
+                    if(dataCsv[k]["Preferred Positions"].match("LW") == "LW"){
+                        i={id: 'i'+inner.length, name: dataCsv[k].Name,related_links:[]};
+                        i.related_nodes=[i.id];
+                        inner.push(i);
+                        console.log(i);
+                        o=outer.get(dataCsv[k].Club);
+                        if(o==null)
+                        {
+                            o={name:dataCsv[k].Club, id:'o'+outerId[0],related_links:[]};
+                            o.related_nodes=[o.id];
+                            outerId[0]=outerId[0]+1;
+                            outer.set(dataCsv[k].Club,o);
+                        }
+                        l = { id: 'l-' + i.id + '-' + o.id, inner: i, outer: o }
+                        links.push(l);
+                        
+                        i.related_nodes.push(o.id);
+                        i.related_links.push(l.id);
+                        o.related_nodes.push(i.id);
+                        o.related_links.push(l.id);
+
+                        o2=outer2.get(dataCsv[k].Nationality);
+                        if(o2==null){
+                            o2={name:dataCsv[k].Nationality, id:'c'+outerId1[0],related_links:[]};
+                            o2.related_nodes=[o2.id];
+                            outerId1[0]=outerId1[0]+1;
+                            outer2.set(dataCsv[k].Nationality,o2);
+                        }
+                        l = { id: 'l-' + i.id + '-' + o2.id, inner: i, outer: o2 }
+                        links.push(l);
+                        
+                        i.related_nodes.push(o2.id);
+                        i.related_links.push(l.id);
+                        o2.related_nodes.push(i.id);
+                        o2.related_links.push(l.id);
+                        
+                        count++;
+                        k++;
+
+                    }
+                    else{
+                        k++;
+                    }
+
+                }
+                
+            dataCsv={
+                inner: inner,
+                outer: outer.values(),
+                outer2: outer2.values(),
+                links: links
+            }
+            //console.log(dataCsv);
+
+            //Sorting the data--- 
+            /*outer=dataCsv.outer;
+            outer2=dataCsv.outer2;
+
+            console.log(outer);
+            var i1=0;
+            var i2=outer.length-1;
+            console.log(i1+" is "+i2)
+
+
+            for(var i=0;i<dataCsv.outer.length; ++i){
+                if(i%2==1){
+                    dataCsv.outer[i2--]=outer[i];
+                    console.log("odd "+i2+" "+dataCsv.outer[i]);
+                }
+                else{
+                    dataCsv.outer[i1++]=outer[i];
+                    console.log("even "+i1+" "+dataCsv.outer[i]);
+                }
+            }*/
+//I have an Idea-1
+            var diameter = 1000;
+            var rect_width = 100;
+            var rect_height = 12;
+
+            var link_width = "1px"; 
+
+            var il = dataCsv.inner.length;
+            var ol = dataCsv.outer.length;
+
+            var inner_y = d3.scale.linear()
+                .domain([0, il])
+                .range([-(il * rect_height)/2, (il * rect_height)/2]);
+
+            mid = (dataCsv.outer.length/2.0)
+            var outer_x = d3.scale.linear()
+                .domain([0, mid, mid, dataCsv.outer.length])
+                .range([15, 170, 190 ,355]);
+
+            var outer_y = d3.scale.linear()
+                .domain([0, dataCsv.outer.length])
+                .range([0, diameter / 2 - 120]);
+
+
+            // setup positioning
+            dataCsv.outer = dataCsv.outer.map(function(d, i) { 
+                d.x = outer_x(i);
+                d.y = diameter/3;
+               // console.log("dx"+d.x);
+                //console.log("dy"+d.y);
+                return d;
+            });
+
+            dataCsv.inner = dataCsv.inner.map(function(d, i) { 
+                d.x = -(rect_width / 2);
+                d.y = inner_y(i);
+                return d;
+            });
+
+            /*function get_color(name){
+                return '#dddddd';
+            }*/
+
+            //Project X
+            function projectX(x)
+            {
+                console.log(((x - 90) / 180 * Math.PI) - (Math.PI/2));
+                return ((x - 90) / 180 * Math.PI) - (Math.PI/2);
+            }
+
+            var diagonal = d3.svg.diagonal()
+            .source(function(d) {console.log(d.outer.x,d.outer.y); return {"x": d.outer.y * Math.cos(projectX(d.outer.x)), 
+                                  "y": -d.outer.y * Math.sin(projectX(d.outer.x))}; })            
+            .target(function(d) { return {"x": d.inner.y + rect_height/2,
+                                  "y": d.outer.x > 180 ? d.inner.x : d.inner.x + rect_width}; })
+            .projection(function(d) { return [d.y, d.x]; });
+
+            var svg = d3.select("body").append("svg")
+            .attr("width", diameter)
+            .attr("height", diameter)
+            .append("g")
+            .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
+
+            // links
+            var link = svg.append('g').attr('class', 'links').selectAll(".link")
+                .data(dataCsv.links)
+            .enter().append('path')
+                .attr('class', 'link')
+                .attr('id', function(d) { return d.id })
+                .attr("d", diagonal)
+                .attr('stroke', function(d) { return "#dddddd"; })
+                .attr('stroke-width', link_width);
+               //console.log(diagonal);
+            // outer nodes
+
+            var onode = svg.append('g').selectAll(".outer_node")
+                .data(dataCsv.outer)
+            .enter().append("g")
+                .attr("class", "outer_node")
+                .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
+                //.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate("+ d.x +"," + d.y + ")"; })
+                .on("mouseover", mouseover)
+                .on("mouseout", mouseout);
+            //Related to circle
+            onode.append("circle")
+                .attr('id', function(d) { return d.id })
+                .attr("r", 4.5);
+            
+            onode.append("circle")
+                .attr('r', 20)
+                .attr('visibility', 'hidden');
+            
+            onode.append("text")
+                .attr('id', function(d) { return d.id + '-txt'; })
+                .attr("dy", ".31em")
+                .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+                .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+                .text(function(d) { return d.name; });
+
+             // outer club
+
+            var diameter2 = 1400;
+            //var rect_width = 100;
+            //var rect_height = 12;
+
+            var link_width2 = "1px"; 
+            var diagonal2 = d3.svg.diagonal()
+            .source(function(d) {console.log(d.outer.x,d.outer.y); return {"x": d.outer.y * Math.cos(projectX(d.outer.x)), 
+                                  "y": -d.outer.y * Math.sin(projectX(d.outer.x))}; })            
+            .target(function(d) { return {"x": d.inner.y + rect_height/2,
+                                  "y": d.outer.x > 180 ? d.inner.x : d.inner.x + rect_width}; })
+            .projection(function(d) { return [d.y, d.x]; });
+
+           // var ol = dataCsv.outer2.length;
+
+            mid2 = (dataCsv.outer2.length/2.0)
+            var outer2_x = d3.scale.linear()
+                .domain([0, mid2, mid2, dataCsv.outer2.length])
+                .range([15, 170, 190 ,355]);
+
+            var outer2_y = d3.scale.linear()
+                .domain([0, dataCsv.outer2.length])
+                .range([0, diameter2 / 2 - 120]);
+
+
+            // setup positioning
+            dataCsv.outer2 = dataCsv.outer2.map(function(d, i) { 
+                d.x = outer2_x(i);
+                d.y = diameter2/3;
+               // consol2e.log("dx"+d.x);
+                //consol2e.log("dy"+d.y);
+                return d;
+            });
+
+            /*function get_col2or(name){
+                return '#dddddd';
+            }*/
+
+            //Project X
+            /*function projectX(x)
+            {
+                consol2e.log(((x - 90) / 180 * Math.PI) - (Math.PI/2));
+                return ((x - 90) / 180 * Math.PI) - (Math.PI/2);
+            }*/
+            // outer2 nodes
+
+            var link2 = svg.append('g').attr('class', 'links').selectAll(".link")
+                .data(dataCsv.links)
+            .enter().append('path')
+                .attr('class', 'link')
+                .attr('id', function(d) { return d.id })
+                .attr("d", diagonal2)
+                .attr('stroke', function(d) { return "#dddddd"; })
+                .attr('stroke-width', link_width2);
+            
+            var onode2 = svg.append('g').selectAll(".outer2_node")
+                .data(dataCsv.outer2)
+            .enter().append("g")
+                .attr("class", "outer2_node")
+                .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
+                //.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate("+ d.x +"," + d.y + ")"; })
+                .on("mouseover", mouseover2)
+                .on("mouseout", mouseout2);
+            //Related to circle
+            onode2.append("circle")
+                .attr('id', function(d) { return d.id })
+                .attr("r", 4.5);
+            
+            onode2.append("circle")
+                .attr('r', 20)
+                .attr('visibility', 'hidden');
+            
+            onode2.append("text")
+                .attr('id', function(d) { return d.id + '-txt'; })
+                .attr("dy", ".31em")
+                .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+                .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+                .text(function(d) { return d.name; });
+            // inner nodes
+  
+            var inode = svg.append('g').selectAll(".inner_node")
+                .data(dataCsv.inner)
+            .enter().append("g")
+                .attr("class", "inner_node")
+                .attr("transform", function(d, i) { return "translate(" + d.x + "," + d.y + ")"})
+                .on("click",moveTopersonal)
+                .on("mouseover", mouseover)
+                .on("mouseout", mouseout);
+            
+            inode.append('rect')
+                .attr('width', rect_width)
+                .attr('height', rect_height)
+                .attr('id', function(d) { return d.id; })
+                .attr('fill', function(d) { return '#E7717D'; });
+            
+            inode.append("text")
+                .attr('id', function(d) { return d.id + '-txt'; })
+                .attr('text-anchor', 'middle')
+                .attr("transform", "translate(" + rect_width/2 + ", " + rect_height * .75 + ")")
+                .text(function(d) { return d.name; })
+                .attr('fill', function(d) { return '#ffffff'; });
+
+            
+            
+            
+            
+           
+
+            
+            // need to specify x/y/etc
+
+            d3.select(self.frameElement).style("height", diameter - 150 + "px");
+
+            function moveTopersonal(d){
+                console.log(d.id);
+                localStorage.setItem("Name",d.name);
+                localStorage.setItem("Id",+(d.id.slice(1)))
+                window.location.replace("PieMulti.html")
+            }
+
+            function mouseover(d)
+            {
+                // bring to front
+                d3.selectAll('.links .link').sort(function(a, b){ return d.related_links.indexOf(a.id); });	
+                
+                for (var i = 0; i < d.related_nodes.length; i++)
+                {
+                    d3.select('#' + d.related_nodes[i]).classed('highlight', true);
+                    d3.select('#' + d.related_nodes[i] + '-txt').attr("font-weight", 'bold');
+                }
+                
+                for (var i = 0; i < d.related_links.length; i++)
+                    d3.select('#' + d.related_links[i]).attr('stroke-width', '5px');
+            }
+
+            function mouseout(d)
+            {   	
+                for (var i = 0; i < d.related_nodes.length; i++)
+                {
+                    d3.select('#' + d.related_nodes[i]).classed('highlight', false);
+                    d3.select('#' + d.related_nodes[i] + '-txt').attr("font-weight", 'normal');
+                }
+                
+                for (var i = 0; i < d.related_links.length; i++)
+                    d3.select('#' + d.related_links[i]).attr('stroke-width', link_width);
+            }
+            function mouseover2(d)
+            {
+                // bring to front
+                d3.selectAll('.links .link').sort(function(a, b){ return d.related_links.indexOf(a.id); });	
+                
+                for (var i = 0; i < d.related_nodes.length; i++)
+                {
+                    d3.select('#' + d.related_nodes[i]).classed('highlight', true);
+                    d3.select('#' + d.related_nodes[i] + '-txt').attr("font-weight", 'bold');
+                }
+                
+                for (var i = 0; i < d.related_links.length; i++)
+                    d3.select('#' + d.related_links[i]).attr('stroke-width', '5px');
+            }
+
+            function mouseout2(d)
+            {   	
+                for (var i = 0; i < d.related_nodes.length; i++)
+                {
+                    d3.select('#' + d.related_nodes[i]).classed('highlight', false);
+                    d3.select('#' + d.related_nodes[i] + '-txt').attr("font-weight", 'normal');
+                }
+                
+                for (var i = 0; i < d.related_links.length; i++)
+                    d3.select('#' + d.related_links[i]).attr('stroke-width', link_width);
+            }
+            
+        });
+    </script>
+</body>

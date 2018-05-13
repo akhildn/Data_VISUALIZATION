@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #e7e7e7;
+    background-color: #f3f3f3;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: #666;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover:not(.active) {
+    background-color: #ddd;
+}
+
+.frame{
+	overflow:hidden;
+	padding-left : 5px;
+	padding-top : 20px;
+	padding-right : 10px;
+}
+
+
+</style>
+</head>
+<body>
+
+<div class="header">
+	<center><p> <h1> DATA VISUALIZATION </h1> </p></center>
+</div>
+
+<div class="nav">
+	<ul>
+	  <li><a onclick='setFrame("../data/ConceptMap.html")'>ConceptMap</a></li> 	
+	  <li><a onclick='setFrame("../data/GeoMap.html")'>Player count by country</a></li>
+	  <li><a onclick='setFrame("../data/WageByPosition.html")'>Wage by positions</a></li>
+	  <li><a onclick='setFrame("../data/AsterPlot.html")'>Player comparison</a></li>
+	  <li><a onclick='setFrame("../data/ScatterPlot.html")'>Wage by overall and age</a></li>
+	  <li><a onclick='setFrame("../data/BarChartPotential.html")'>Overall and potential</a></li>
+	</ul>
+</div>
+
+<div class="frame">
+   <iframe id="iFrame" src="ConceptMap.html" frameborder="0" style="overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:150%;" height="150%" width="100%"></iframe>
+</div>
+
+<script>
+function setFrame(loc) {
+       document.getElementById('iFrame').src = loc;
+}
+</script>
+</body>
+</html>
+</html>

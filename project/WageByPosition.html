@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Soccer Wage by Position</title>
+  <style>
+    #container1 { border:1px dotted blue; width: 1000px; height: 450px; position: relative; }
+    body {
+	  font: 10px sans-serif;
+	}
+
+	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+	.bar {
+	  fill: black;
+	}
+
+	.bar:hover {
+	  fill: red ;
+	}
+
+	.d3-tip {
+	  line-height: 1;
+	  font-weight: bold;
+	  padding: 12px;
+	  background: rgba(0, 0, 0, 0.8);
+	  color: #fff;
+	  border-radius: 2px;
+	}
+
+  </style>
+</head>
+<body>
+  
+
+
+
+  <h1>Salary by Position in Soccer</h1>
+  <div id="container1">
+
+		  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+		  <script src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+		  <svg id="visualisation" width="1100" height="1000"></svg> 
+		<script>
+
+
+		    d3.csv("data/CompleteDataSet.csv", function(data) {
+		        console.log(data);
+		        
+		        var positionWages = data.reduce(function(r, row) {
+		        	//console.log(row.Wage + " - " + row.Wage.replace(/\D/g,''));
+		        	var position = row["Preferred Positions"].split(" ")[0]
+		        	var wage = row.Wage.replace(/\D/g,'')	
+
+		        	if(parseInt(row.Overall) >= 80) {
+		        		
+		        		if(r[position] !== undefined)
+			        		r[position] = (parseInt(r[position]) + parseInt(wage))
+			        	else 
+			        		r[position] = parseInt(wage)
+
+		        	} 
+
+		        	return r;
+		        }, {});
+
+		        var positionCount = data.reduce(function(r, row) {
+		        	//console.log(row.Wage + " - " + row.Wage.replace(/\D/g,''));
+		        	var position = row["Preferred Positions"].split(" ")[0]
+		        	if(parseInt(row.Overall) >= 80) {
+		        		r[position] = ++r[position] || 1;
+		        	} 
+		        	return r;
+		        }, {});
+
+		        
+
+		        var positionWageMap = Object.keys(positionWages).map(function(key) {
+
+		        	return {
+		        		position: key,
+		        		count: positionCount[key],
+		        		wage: (positionWages[key] / positionCount[key]).toFixed(2)
+		        	}
+		        });
+
+		        console.log(positionCount);
+		        console.log(positionWageMap);
+
+		        var graph = d3.select("#visualisation"),         
+		            MARGINS = {
+		                top: 40,
+		                right: 20,
+		                bottom: 30,
+		                left: 40
+		            },
+		            WIDTH = 960 - MARGINS.left - MARGINS.right,
+		            HEIGHT = 500 - MARGINS.top - MARGINS.bottom,
+		           // xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([1999, 2020]),
+		            xScale = d3.scale.ordinal().rangePoints([MARGINS.left + 20, WIDTH - MARGINS.right]).domain(positionWageMap.map(function(d) { return d.position; })),
+		            yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([0, 200]),
+		            xAxis = d3.svg.axis()
+		            .scale(xScale),
+		            yAxis = d3.svg.axis()
+		            .scale(yScale)
+		            .orient("left")
+		            ;
+
+		         function createAxis(graph, axisObj, axisName, translateLow, translateHigh) {
+		            graph.append("svg:g")
+		            .attr("class", axisName)
+		            .attr("transform", "translate("+translateLow+"," + translateHigh + ")")
+		            .call(axisObj)
+		            ;
+
+		       	 }
+
+		       	 createAxis(graph, xAxis, 'x axis', 0, (HEIGHT - MARGINS.bottom));
+		        // createAxis(graph, yAxis, 'y axis', MARGINS.left, 0);
+
+		         graph.append("svg:g")
+		            .attr("class", 'y axis')
+		            .attr("transform", "translate("+ MARGINS.left+"," + 0 + ")")
+		            .call(yAxis)
+		            .append("text")
+				      .attr("transform", "rotate(-90)")
+				      .attr("x", -100)
+				      .attr("y", -35)
+				      .attr("dy", ".71em")
+				      .style("text-anchor", "middle")
+				      .text("Salary in Thousand Euros")
+		            ;
+		        //Adding tool tip
+		        var tooltip = d3.tip()
+				  .attr('class', 'd3-tip')
+				  .offset([-10, 0])
+				  .html(function(d) {
+				    return "<strong>Salary:</strong> <span style='color:white'>" + d.wage + "</span>";
+				  })
+
+				  var svg = d3.select("body").append("svg")
+				    
+				  .append("g")
+				    ;
+
+				svg.call(tooltip);
+
+		        graph.selectAll(".bar")
+		        	.data(positionWageMap)
+		        	.enter().append("rect")
+		        	.attr("class", "bar")
+		            .attr("x", function(d) { return -10 + xScale(d.position); })
+		            .attr("width", 20)
+		            .attr("y", function(d) { return -30+yScale(d.wage); })
+		            .attr("height", function(d) { console.log(HEIGHT - yScale(d.wage) + 100); return HEIGHT - yScale(d.wage); })
+		            .on('mouseover', tooltip.show)
+		            .on('mouseout', tooltip.hide)
+
+			});
+
+
+		        
+
+		</script>
+	</div>
+	<br/>
+	<strong>*The above graph is based on top 500 players by rating and their annual salaries</strong>
+	<hr/>
+	<div>
+	<h1><u>Observation</u></h1>
+	<h2>The top positions which are highly paid are Left Wing (LW) and Right Wing (RW)</h2>
+	</div>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<html>
+    <head>
+        <title>
+            Scatterd Plot Implementation.
+        </title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+    </head>
+
+    <body>
+        
+        <script id="Scattered">
+
+            var m={top:30, right:30, bottom:40, left:40},
+                w=800-m.left-m.right,
+                h=600-m.top-m.bottom;
+            
+            //deciding the range of the x axis and y axis.
+
+            var x=d3.scale.linear()
+                .range([0,w-5]);
+            var y=d3.scale.linear()
+                .range([h,40]);
+            var color=d3.scale.category20();
+
+            //Deciding the orientation of the axis.
+            var xAxis=d3.svg.axis()
+                .scale(x)
+                .orient("bottom");
+            var yAxis=d3.svg.axis()
+                .scale(y)
+                .orient("left");
+            //Creating the svg element
+            var svg=d3.select("body")
+                .append("svg")
+                .attr("width",w+m.left+m.right)
+                .attr("height",h+m.top+m.bottom)
+                .append("g")
+                .attr("transform","translate("+m.left+","+m.top+")");
+
+
+            d3.csv("CompleteDataset.csv",function(data){
+
+                data.forEach(element => {
+                    element.Overall=+element.Overall;
+                    element.Age=+element.Age;
+                    
+                    element.Value=string2Number(element.Value);
+                    //console.log(element.Value);
+                    //console.log(element.Value);
+                });
+                x.domain(d3.extent(data,function(d){return d.Age;})).nice();
+                y.domain(d3.extent(data,function(d){return d.Overall;})).nice();
+
+                svg.append("g")
+                    .attr("class","x axis")
+                    .attr("transform","translate(0,"+h+")")
+                    .call(xAxis)
+                    .append("text")
+                    .attr("class","label")
+                    .attr("x",w)
+                    .attr("y",-6)
+                    .style("text-anchor","end")
+                    .text("Age");
+                
+                svg.append("g")
+                    .attr("class","y axis")
+                    .call(yAxis)
+                    .append("text")
+                    .attr("class","label")
+                    .attr("transform","rotate(-90)")
+                    .attr("y",6)
+                    .attr("dy",".71em")
+                    .style("text-anchor","end")
+                    .text("Overall");
+
+                svg.selectAll(".dot")
+                    .data(data)
+                    .enter().append("circle")
+                    .attr("class","dot")
+                    .attr("r",function(d){
+                        return (d.Value/10000000)*3;})
+                    .attr("cx",function(d){return x(d.Age);})
+                    .attr("cy",function(d){return y(d.Overall);})
+                    .style("stroke","#000000")
+                    .style("fill",function(d){return "#4c4cff";});
+                var legend=svg.selectAll(".legend")
+                    .data(color.domain())
+                    .enter().append("g")
+                    .attr("class", "legend")
+                    .attr("transform", function(d,i){return "translate(0,"+i*20+")";});
+
+                legend.append("rect")
+                    .attr("x",w)
+                    .attr("width",18)
+                    .attr("height",18)
+                    .style("fill",color);
+                legend.append("text")
+                    .attr("x",w)
+                    .attr("y",9)
+                    .attr("dy",".35em")
+                    .style("text-anchor","end")
+                    .text(function(d){return d;});
+            });
+            /*//Creating the svg element
+            var svg=d3.select("body")
+                .append("svg")
+                .attr("width",1300)
+                .attr("height",1300);
+
+            //Making the circle for each data points
+            svg.selectAll("circle")
+            d3.csv("maindata.csv",function(data){
+
+            });*/
+            function string2Number(amount){
+                if(amount.slice(-1)=='M'){
+                    console.log((amount.slice(1,-1))*1000000);
+                    return Number((amount.slice(1,-1))*1000000);
+                }
+                else if(amount.slice(-1)=='K'){
+                    return Number((amount.slice(1,-1))*1000);
+                }
+                else{
+                    return Number(amount.slice(1,-1));
+                }
+                    
+            }
+        
+        </script>
+    </body>
+</html>

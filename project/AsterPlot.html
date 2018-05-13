@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Soccer Wage by Position</title>
+  <style>
+    #container1 { border:1px dotted blue; width: 1000px; height: 450px; position: relative; }
+    body {
+	  font: 10px sans-serif;
+	}
+
+	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+	.bar {
+	  fill: black;
+	}
+
+	.bar:hover {
+	  fill: red ;
+	}
+
+	.d3-tip {
+	  line-height: 1;
+	  font-weight: bold;
+	  padding: 12px;
+	  background: rgba(0, 0, 0, 0.8);
+	  color: #fff;
+	  border-radius: 2px;
+	}
+
+  </style>
+</head>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+
+		function drawArcsForPlayer(playerName, divName) {
+		    d3.csv("data/CompleteDataSet.csv", function(data) {
+		        
+		    	var playerOverall = 0;
+		    	function getPlayerData(playerName) {
+		    		var attributeArray = new Array();
+		    		data.forEach(function(d) {
+		    			//console.log(d.Name)
+		    			if(d.Name === playerName) {
+		    				playerOverall = d.Overall;
+		    				attributeArray.push({
+		    					name: "Acceleration",
+		    					weight: 1,
+		    					value: d.Acceleration
+		    				});
+		    				document.getElementById("Acceleration" + "_"+ divName +"_lbl")
+		    						.innerHTML = d.Acceleration;
+
+		    				attributeArray.push({
+		    					name: "Aggression",
+		    					weight: 1,
+		    					value: d.Aggression
+		    				})
+		    				document.getElementById("Aggression" + "_"+ divName +"_lbl")
+		    						.innerHTML = d.Aggression;
+
+		    				attributeArray.push({
+		    					name: "Agility",
+		    					weight: 1,
+		    					value: d.Agility
+		    				})
+		    				document.getElementById("Agility" + "_"+ divName +"_lbl")
+		    						.innerHTML = d.Agility;
+
+		    				attributeArray.push({
+		    					name: "Balance",
+		    					weight: 0.5,
+		    					value: d.Balance
+		    				})
+		    				document.getElementById("Balance" + "_"+ divName +"_lbl")
+		    						.innerHTML = d.Balance;
+
+		    				attributeArray.push({
+		    					name: "Ball control",
+		    					weight: 1,
+		    					value: d["Ball control"]
+		    				})
+
+		    				document.getElementById("Ball" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Ball control"];
+
+		    				attributeArray.push({
+		    					name: "Composure",
+		    					weight: 0.5,
+		    					value: d["Composure"]
+		    				})
+
+		    				document.getElementById("Composure" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Composure"];
+
+		    				attributeArray.push({
+		    					name: "Dribbling",
+		    					weight: 0.5,
+		    					value: d["Dribbling"]
+		    				})
+
+		    				document.getElementById("Dribbling" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Dribbling"];
+
+		    				attributeArray.push({
+		    					name: "Interceptions",
+		    					weight: 0.5,
+		    					value: d["Interceptions"]
+		    				})
+
+		    				document.getElementById("Interceptions" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Interceptions"];
+
+		    				attributeArray.push({
+		    					name: "Long passing",
+		    					weight: 1,
+		    					value: d["Long passing"]
+		    				})
+
+		    				document.getElementById("Long" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Long passing"];
+
+		    				attributeArray.push({
+		    					name: "Penalties",
+		    					weight: 0.5,
+		    					value: d["Penalties"]
+		    				})
+
+		    				document.getElementById("Penalties" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Penalties"];
+
+		    				attributeArray.push({
+		    					name: "Short passing",
+		    					weight: 1,
+		    					value: d["Short passing"]
+		    				})
+
+		    				document.getElementById("Short" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Short passing"];
+
+		    				attributeArray.push({
+		    					name: "Sprint speed",
+		    					weight: 1,
+		    					value: d["Sprint speed"]
+		    				})
+
+		    				document.getElementById("Sprint" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Sprint speed"];
+
+		    				attributeArray.push({
+		    					name: "Stamina",
+		    					weight: 1,
+		    					value: d["Stamina"]
+		    				})
+
+		    				document.getElementById("Stamina" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Stamina"];
+
+		    				attributeArray.push({
+		    					name: "Strength",
+		    					weight: 1,
+		    					value: d["Strength"]
+		    				})
+
+		    				document.getElementById("Strength" + "_"+ divName +"_lbl")
+		    						.innerHTML = d["Strength"];
+		    			}
+		    		})
+
+		    		return attributeArray;
+		    	}
+
+		    	var playerAttributes = getPlayerData(playerName);
+		        var tooltip = d3.tip()
+				  .attr('class', 'd3-tip')
+				  .offset([-10, 0])
+				  .html(function(d) {
+				    return "<strong>"+ d.data.name +":</strong> <span style='color:white'>" + d.data.value + "</span>";
+				  })
+
+				  var MARGINS = {
+		                top: 40,
+		                right: 20,
+		                bottom: 30,
+		                left: 40
+		            },
+		            WIDTH = 500,
+		            HEIGHT = 500, 
+		            radius = Math.min(WIDTH, HEIGHT) / 2, innerRadius = 0.3*radius;
+
+				  var svg = d3.select("#"+divName).append("svg")				  	
+						    .attr("width", WIDTH)
+						    .attr("height", HEIGHT)
+						    .attr("align", "center")
+						    .attr("id", divName+"_svg")
+						    .append("g")
+						    .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
+
+						svg.call(tooltip);
+
+				svg.call(tooltip);
+
+				playerAttributes.forEach(function(d) {
+				    d.name   =  d.name;
+				    d.weight = +d.weight;
+				    d.value  = +d.value;
+				    d.width  = +d.weight;				    
+				  })
+
+				
+				var pie = d3.layout.pie()
+				    .sort(null)
+				    .value(function(d) { return d.width; });
+
+				var arc = d3.svg.arc()
+				  .innerRadius(innerRadius)
+				  .outerRadius(function (d) { 
+				    return (radius - innerRadius) * (d.data.value / 100.0) + innerRadius; 
+				  });
+
+				var outlineArc = d3.svg.arc()
+				        .innerRadius(innerRadius)
+				        .outerRadius(radius);
+
+				var colors = d3.scale.category10();
+				var path = svg.selectAll(".solidArc")
+				      .data(pie(playerAttributes))
+				    .enter().append("path")
+				      .attr("fill", function(d) { return colors(d.data.name); })				    
+				      .attr("d", arc)
+				      .on('mouseover', tooltip.show)
+				      .on('mouseout', tooltip.hide);
+
+				var outerPath = svg.selectAll(".outlineArc")
+				      .data(pie(playerAttributes))
+				    .enter().append("path")
+				      .attr("fill", "none")
+				      .attr("stroke", "grey")
+				      .attr("d", outlineArc);  
+
+		        svg.append("svg:text")				    
+				    .attr("line-height", "2")
+				    .attr("font-weight", "bold")
+				    .attr("font-size", "36")
+				    .attr("text-anchor", "middle")
+				    .text(Math.round(playerOverall));
+				     
+
+			});
+
+		}
+</script>
+<script type="text/javascript">
+	function loadMenus() {
+
+		d3.csv("data/CompleteDataSet.csv", function(data) {
+			var one = document.getElementById("playerOneOption");
+			var two = document.getElementById("playerTwoOption");
+
+			data.slice(0,15).forEach(function(player) {
+
+				var option1 = document.createElement("option");
+				option1.text = player.Name
+				option1.value = player.Name
+
+				var option2 = document.createElement("option");
+				option2.text = player.Name
+				option2.value = player.Name
+
+				one.add(option1);
+				two.add(option2);
+			})
+		});
+		
+	}
+
+	function drawGraphs() {
+		var leftOption = document.getElementById("playerOneOption").value
+		var rightOption = document.getElementById("playerTwoOption").value
+		console.log(leftOption)
+		
+		document.getElementById('playerOne_lbl').innerHTML = leftOption
+		document.getElementById('playerTwo_lbl').innerHTML = rightOption
+
+		drawArcsForPlayer(leftOption, "leftGraph")
+		drawArcsForPlayer(rightOption, "rightGraph")
+		var parent = document.getElementById("leftGraph");
+		var child = document.getElementById("leftGraph_svg");
+		parent.removeChild(child);
+
+		var parent = document.getElementById("rightGraph");
+		var child = document.getElementById("rightGraph_svg");
+		parent.removeChild(child);
+
+	}
+
+</script>
+
+<body onload="loadMenus()">
+  <h1 align="center">Head to Head comparision</h1>
+  <br/>
+  <hr/>
+  <br/>
+
+  <div id = "menu" align="center">
+  	<form class="w3-container w3-card-4" action="#" onsubmit="drawGraphs()">
+  	  <p>Choose players to compare:</p>
+	  <select class="w3-select w3-border" id="playerOneOption">
+	    <option value="" disabled selected>Player One</option>	   
+	  </select>
+
+	  <strong>VS</strong>
+
+	  <select class="w3-select w3-border" id="playerTwoOption">
+	    <option value="" disabled selected>Player Two</option>	    
+	  </select>
+	  <p>
+		<button class="w3-btn w3-teal"> Compare </button>
+	  </p>
+	</form>
+  </div>
+  <br/>
+  <hr/>
+  <br/>
+  <div id = "graphs">
+  <div id ="leftGraph" style="width: 50%; float:left;" align="center">
+  		<h1><label id="playerOne_lbl">Player One</label></h1>		
+	</div>
+	<div id = "rightGraph" style="width: 50%; float:right;" align="center">
+		<h1><label id="playerTwo_lbl">Player Two</label></h1>	
+	</div>
+   </div>
+   <div id = "Info">
+  <div id ="leftInfo" style="width: 50%; float:left;" align="center">
+  		<h1><label>Attributes:</label></h1>		
+  		<p>Acceleration: <label id="Acceleration_leftGraph_lbl"></label> </p>
+		<p>Aggression: <label id="Aggression_leftGraph_lbl"></label></p>
+		<p>Agility: <label id="Agility_leftGraph_lbl"></label></p>
+		<p>Balance: <label id="Balance_leftGraph_lbl"></label></p>
+		<p>Ball control: <label id="Ball_leftGraph_lbl"></label></p>
+		<p>Composure: <label id="Composure_leftGraph_lbl"></label></p>
+		<p>Dribbling: <label id="Dribbling_leftGraph_lbl"></label></p>
+		<p>Interceptions: <label id="Interceptions_leftGraph_lbl"></label></p>
+		<p>Long passing: <label id="Long_leftGraph_lbl"></label></p>
+		<p>Penalties: <label id="Penalties_leftGraph_lbl"></label></p>
+		<p>Short passing: <label id="Short_leftGraph_lbl"></label></p>
+		<p>Sprint speed: <label id="Sprint_leftGraph_lbl"></label></p>
+		<p>Stamina: <label id="Stamina_leftGraph_lbl"></label></p>
+		<p>Strength: <label id="Strength_leftGraph_lbl"></label></p>
+	</div>
+	<div id = "rightInfo" style="width: 50%; float:right;" align="center">
+		<h1><label>Attributes:</label></h1>	
+		<p>Acceleration: <label id="Acceleration_rightGraph_lbl"></label> </p>
+		<p>Aggression: <label id="Aggression_rightGraph_lbl"></label></p>
+		<p>Agility: <label id="Agility_rightGraph_lbl"></label></p>
+		<p>Balance: <label id="Balance_rightGraph_lbl"></label></p>
+		<p>Ball control: <label id="Ball_rightGraph_lbl"></label></p>
+		<p>Composure: <label id="Composure_rightGraph_lbl"></label></p>
+		<p>Dribbling: <label id="Dribbling_rightGraph_lbl"></label></p>
+		<p>Interceptions: <label id="Interceptions_rightGraph_lbl"></label></p>
+		<p>Long passing: <label id="Long_rightGraph_lbl"></label></p>
+		<p>Penalties: <label id="Penalties_rightGraph_lbl"></label></p>
+		<p>Short passing: <label id="Short_rightGraph_lbl"></label></p>
+		<p>Sprint speed: <label id="Sprint_rightGraph_lbl"></label></p>
+		<p>Stamina: <label id="Stamina_rightGraph_lbl"></label></p>
+		<p>Strength: <label id="Strength_rightGraph_lbl"></label></p>
+	</div>
+   </div>
+
+</body>
+</html>

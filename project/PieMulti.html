@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  text-align: center;
+}
+svg{
+    border: 1px solid #000000;
+    border-radius: 10px;
+}
+img{
+    border-radius: 50%;
+}
+
+</style>
+<body>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<div>
+    <img id="playerImage">
+    
+</div>
+<div>
+        <label id="lbltipAddedComment">test</label>
+        <script>
+          document.getElementById('lbltipAddedComment').innerHTML = localStorage.getItem("Name");
+        </script>
+</div>
+<div id="pie">
+        <script>
+
+                var dataset;
+                var se=localStorage.getItem("Id");
+                console.log(localStorage.getItem("Name"));
+                console.log(localStorage.getItem("Id"));
+                var m = 10,
+                    r = 100,
+                    z = d3.scale.category20c();
+                var radius = Math.min(r, 2 * (r+m)) / 2,
+                    angleRange = 0.5 * Math.PI;
+                d3.csv("CompleteDataset.csv",function(data){
+				
+				var index = 0;
+				for(i =0; i < data.length; i++){
+				 if(data[i].Name === localStorage.getItem("Name")){
+					break;
+				 }
+				 index++;
+				}
+				console.log("hello at 50");
+				console.log(index);
+                var dataset=[
+                        [+data[index].CF],
+                        [+data[index].ST],
+                        [+data[index].LW],
+                        [+data[index].RW],
+                        [+data[index].RCM],
+                        [+data[index].LCM],
+                        [+data[index].CM],
+                        [+data[index].LB],
+                        [+data[index].CB],
+                        [+data[index].RB],
+                        [+data[index].GK]
+                    ];
+			    var photoUrl = data[index].Photo;
+				document.getElementById("playerImage").src = photoUrl;
+                var position=["CF","ST","LW","RW","RCM","LCM","CM","LB","CB","RB","GK"];
+                var svg = d3.select("body").selectAll("svg")
+                    .data(dataset)
+                  .enter().append("svg")
+                    .attr("width", (r + m) * 2)
+                    .attr("height", (r + m) * 2)
+                  .append("g")
+                    .attr("transform", "translate(" + (r + m) + "," + (r + m) + ")");
+                
+                // The data for each svg element is a row of numbers (an array). We pass that to
+                // d3.layout.pie to compute the angles for each arc. These start and end angles
+                // are passed to d3.svg.arc to draw arcs! Note that the arc radius is specified
+                // on the arc, not the layout.
+                var arc=d3.svg.arc()
+                    .innerRadius(r/2)
+                    .outerRadius(r);
+                
+                var path=svg.selectAll("path")
+                    .data(d3.layout.pie().sort(null).startAngle(angleRange*-1).endAngle(angleRange))
+                  .enter().append("path")
+                    .attr("d",arc)
+                    .style("fill", function(d, i) { console.log(d,i);return z(i); });
+                svg.append("text")
+                    .attr("dy", "-.3em")
+                                .attr("dx", "-0.95em")
+                                .attr("font-size", "20px")
+                                .attr("font-family", "sans-serif")
+                                .text(function(d) { return d; });
+                svg.append("text")
+                    .attr("dy", "1em")
+                                .attr("dx", "-0.95em")
+                                .attr("font-size", "20px")
+                                .attr("font-family", "sans-serif")
+                                .text(function(d,i) { return position[i]; });
+                
+                path.transition()
+                    .duration(2000)
+                    .delay(500)
+                    .attrTween("d", tweenArc(function(d, i) {
+                        console.log(d.endAngle*d.value/100);
+                        return {
+                            
+                            startAngle: -1 * angleRange,
+                            endAngle:((3.14*d.value)/100)-d.endAngle,
+                            }
+                    }));
+                
+                    function tweenArc(b) {
+                        return function(a, i) {
+                            var d = b.call(this, a, i),
+                            i = d3.interpolate(a, d);
+                            for (var k in d) a[k] = d[k]; // update data
+                                return function(t) {
+                                    return arc(i(t));
+                                    };
+                            };
+                    }
+                });
+                
+                
+                
+                
+                
+                // Insert an svg element (with margin) for each row in our dataset. A child g
+                // element translates the origin to the pie center.
+                </script>
+
+</div>

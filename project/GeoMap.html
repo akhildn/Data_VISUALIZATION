@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Soccer Players by Country</title>
+  <style>
+    #container1 { border:1px dotted blue; width: 700px; height: 475px; position: relative; }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 8px;
+    }
+
+    tr:nth-child(even){background-color: #f2f2f2}
+
+    th {
+        background-color: #660000;
+        color: white;
+    }
+  </style>
+</head>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<body align="center">
+  <h1 align="center">Soccer Players by Country</h1>
+  <div id="container1" align="center"></div>
+  <div align="center">
+      <table id="country_tbl">
+          <tr>
+            <th>Rank</th>
+            <th>Country Name</th>
+            <th>Count</th>
+          </tr>
+      </table>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datamaps/0.5.8/datamaps.all.js"></script>
+  
+<script>
+
+
+    d3.csv("data/CompleteDataSet.csv", function(data) {
+        //console.log(data);
+
+        var countryArray = Datamap.prototype.worldTopo.objects.world.geometries;
+        var countryISOMap = {};
+        
+
+        function processData(data) {
+            for (var i = 0, j = countryArray.length; i < j; i++) {
+              countryISOMap[countryArray[i].properties.name]  = countryArray[i].id
+            }
+        }
+        //console.log("Country Map")
+        //console.log(countryArray);
+
+        var occurences = data.reduce(function (r, row) {
+            r[row.Nationality] = ++r[row.Nationality] || 1;
+            if(row.Nationality === "Wales" || row.Nationality === "Scotland"
+                    || row.Nationality === "England" || row.Nationality ===  "Northern Ireland") {
+                r["United Kingdom"] = ++r["United Kingdom"] || 1;
+            }
+            return r;
+        }, {});
+            
+        var playerByCountry = Object.keys(occurences).map(function (key) {
+            var coID = "";
+            for (var i = 0, j = countryArray.length; i < j; i++) {
+              if(countryArray[i].properties.name === key)
+                coID = countryArray[i].id
+              if(key === "Serbia")
+                coID = "SRB"
+              else if(key === "Korea Republic")
+                coID = "KOR"
+              else if(key === "Korea DPR")
+                coID = "PRK"
+              else if(key === "DR Congo")
+                coID = "COD"
+              else if(key === "Republic of Ireland")
+                coID = "IRL"
+              else if(key === "United States")
+                coID = "USA"
+              else if(key === "China PR")
+                coID = "CHN"
+              else if(key === "FYR Macedonia")
+                coID = "MKD"
+              else if(key === "Congo")
+                coID = "COG"
+              else if(key === "Trinidad & Tobago")
+                coID = "TTO"
+              else if(key === "Tanzania")
+                coID = "TZA"
+              else if(key === "Central African Rep.")
+                coID = "CAF"
+              else if(key === "Brunei Darussalam")
+                coID = "BRN"
+              else if(key === "Hong Kong")
+                coID = "HKG"
+            }
+
+            return { countryName: key
+                        , countryID: coID
+                        , count: occurences[key] };
+        });
+
+
+        var counts = playerByCountry.map(function(obj){ return obj.count; });
+        var minValue = Math.min.apply(null, counts),
+        maxValue = Math.max.apply(null, counts);
+        
+        var playerCountPerCountryData = {};
+        var paletteScale = d3.scale.linear()
+                .domain([minValue,maxValue])
+                .range(["#ffe6e6","#660000"]); 
+
+        playerByCountry.forEach(function(item){ //
+            playerCountPerCountryData[item.countryID] = { playerCount: item.count, fillColor: paletteScale(item.count) };
+        });
+
+        // render map
+        new Datamap({
+            element: document.getElementById('container1'),
+            projection: 'mercator', // big world map
+            fills: { defaultFill: '#F5F5F5' },
+            data: playerCountPerCountryData,
+            geographyConfig: {
+                borderColor: '#DEDEDE',
+                highlightBorderWidth: 2,
+                highlightFillColor: function(geo) {
+                    return geo['fillColor'] || '#F5F5F5';
+                },
+                highlightBorderColor: '#B7B7B7',
+                popupTemplate: function(geo, data) {
+
+                    if (!data) { return ['<div class="hoverinfo">',
+                        '<strong>', geo.properties.name, '</strong>',
+                        '<br>Count: <strong>', 0, '</strong>',
+                        '</div>'].join(''); }                    
+                    return ['<div class="hoverinfo">',
+                        '<strong>', geo.properties.name, '</strong>',
+                        '<br>Count: <strong>', data.playerCount, '</strong>',
+                        '</div>'].join('');
+                }
+            }
+
+        });
+
+        
+        playerByCountry.sort((a, b) => parseFloat(b.count) - parseFloat(a.count));
+        var tbl = document.getElementById("country_tbl");
+        var rank = 1;
+        for (var r = 0; r < playerByCountry.length; r++) {
+            if(playerByCountry[r].countryID === "")
+              continue;
+            var row = document.createElement("tr");
+            var column1 = document.createElement("td");
+            var column2 = document.createElement("td");
+            var column3 = document.createElement("td");
+            column1.appendChild(document.createTextNode(rank));
+            column2.appendChild(document.createTextNode(playerByCountry[r].countryName));
+            column3.appendChild(document.createTextNode(playerByCountry[r].count));
+
+            row.appendChild(column1);
+            row.appendChild(column2);
+            row.appendChild(column3);
+                       
+            
+            tbl.appendChild(row);
+            rank++;
+        }
+
+
+
+    });
+
+</script>
+  
+</body>
+</html>
